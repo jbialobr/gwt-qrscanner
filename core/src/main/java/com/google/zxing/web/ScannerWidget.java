@@ -31,7 +31,6 @@ public class ScannerWidget extends FlowPanel
         add(video);
         video.setStyleName("qrPreviewVideo");
         video.setAutoplay(true);
-        setWebcam(video.getElement(), this);
     }
 
     private void createScanTimer()
@@ -69,7 +68,7 @@ public class ScannerWidget extends FlowPanel
                 {
                     w = w * snapImageMaxSize / h;
                     h = snapImageMaxSize;
-                }                
+                }
             }
             canvas.setCoordinateSpaceWidth(w);
             canvas.setCoordinateSpaceHeight(h);
@@ -202,6 +201,13 @@ public class ScannerWidget extends FlowPanel
     public void setSnapImageMaxSize(int snapImageMaxSize)
     {
         this.snapImageMaxSize = snapImageMaxSize;
+    }
+
+    @Override
+    protected void onAttach()
+    {
+        super.onAttach();
+        setWebcam(video.getElement(), this);
     }
 
 }
