@@ -207,6 +207,7 @@ public class ScannerWidget extends FlowPanel
     protected void onAttach()
     {
         super.onAttach();
+        video.setSrc("");
         setWebcam(video.getElement(), this);
     }
 
