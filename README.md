@@ -1,2 +1,2 @@
 # gwt-qrscanner
-Port the zxing qr code scanner to gwt
+Port the [zxing](https://github.com/zxing/zxing) qr code scanner to gwt
