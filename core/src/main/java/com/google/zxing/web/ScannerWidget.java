@@ -22,7 +22,7 @@ public class ScannerWidget extends FlowPanel
     private int scanInterval = 300;
     private AsyncCallback<Result> callback;
     private Timer scanTimer;
-    private int snapImageMaxSize = 300;
+    private int snapImageMaxSize = 3000;
     private boolean active = true;
 
     public ScannerWidget(AsyncCallback<Result> callback)
