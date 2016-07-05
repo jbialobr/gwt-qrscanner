@@ -23,6 +23,7 @@ public class ScannerWidget extends FlowPanel
     private AsyncCallback<Result> callback;
     private Timer scanTimer;
     private int snapImageMaxSize = 300;
+    private boolean active = true;
 
     public ScannerWidget(AsyncCallback<Result> callback)
     {
@@ -84,7 +85,19 @@ public class ScannerWidget extends FlowPanel
 
     private void startScanning()
     {
-        scanTimer.schedule(scanInterval);
+        if(isScanning())
+            scanTimer.schedule(scanInterval);
+    }
+    
+    public void stopScanning()
+    {
+        active = false;
+    }
+    
+    public void resumeScanning()
+    {
+        active = true;
+        startScanning();
     }
 
     private void videoAttached()
@@ -94,6 +107,9 @@ public class ScannerWidget extends FlowPanel
 
     private void scan()
     {
+        if(!isScanning())
+            return;
+        
         try
         {
             BinaryBitmap bitmap = createSnapImage();
@@ -209,6 +225,16 @@ public class ScannerWidget extends FlowPanel
         super.onAttach();
         video.setSrc("");
         setWebcam(video.getElement(), this);
+    }
+
+    public boolean isActive()
+    {
+        return active;
+    }
+    
+    public boolean isScanning()
+    {
+        return isActive() && isAttached();
     }
 
 }
