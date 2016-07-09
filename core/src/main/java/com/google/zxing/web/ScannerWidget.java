@@ -23,7 +23,7 @@ public class ScannerWidget extends FlowPanel
     private int scanInterval = 300;
     private AsyncCallback<Result> callback;
     private Timer scanTimer;
-    private int snapImageMaxSize = 3000;
+    private int snapImageMaxSize = -1;
     private boolean active = true;
     private JavaScriptObject videoStream;
 
@@ -57,20 +57,23 @@ public class ScannerWidget extends FlowPanel
         h = video.getVideoHeight();
         if(w > 0 && h > 0)
         {
-            if(w > h)
+            if(snapImageMaxSize > 0)
             {
-                if(snapImageMaxSize < w)
+                if(w > h)
                 {
-                    h = h * snapImageMaxSize / w;
-                    w = snapImageMaxSize;
+                    if(snapImageMaxSize < w)
+                    {
+                        h = h * snapImageMaxSize / w;
+                        w = snapImageMaxSize;
+                    }
                 }
-            }
-            else
-            {
-                if(snapImageMaxSize < h)
+                else
                 {
-                    w = w * snapImageMaxSize / h;
-                    h = snapImageMaxSize;
+                    if(snapImageMaxSize < h)
+                    {
+                        w = w * snapImageMaxSize / h;
+                        h = snapImageMaxSize;
+                    }
                 }
             }
             canvas.setCoordinateSpaceWidth(w);
@@ -90,12 +93,12 @@ public class ScannerWidget extends FlowPanel
         if(isScanning())
             scanTimer.schedule(scanInterval);
     }
-    
+
     public void stopScanning()
     {
         active = false;
     }
-    
+
     public void resumeScanning()
     {
         active = true;
@@ -111,7 +114,7 @@ public class ScannerWidget extends FlowPanel
     {
         if(!isScanning())
             return;
-        
+
         try
         {
             BinaryBitmap bitmap = createSnapImage();
@@ -143,29 +146,25 @@ public class ScannerWidget extends FlowPanel
     }
 
     public native void stopWebcam(ScannerWidget scanner) /*-{
-        if(scanner.@com.google.zxing.web.ScannerWidget::videoStream)
-        {
-            var stream = scanner.@com.google.zxing.web.ScannerWidget::videoStream;
-            if(stream.stop)
-            {
-                stream.stop();
-            }
-            else if(stream.getTracks)
-            {
-                stream.getTracks().forEach(function (track) {
-                    track.stop();
-                }); 
-            }
-                     
-           scanner.@com.google.zxing.web.ScannerWidget::videoStream = null;
-        }
+		if (scanner.@com.google.zxing.web.ScannerWidget::videoStream) {
+			var stream = scanner.@com.google.zxing.web.ScannerWidget::videoStream;
+			if (stream.stop) {
+				stream.stop();
+			} else if (stream.getTracks) {
+				stream.getTracks().forEach(function(track) {
+					track.stop();
+				});
+			}
+
+			scanner.@com.google.zxing.web.ScannerWidget::videoStream = null;
+		}
     }-*/;
-    
+
     public native void setWebcam(Element videoElement, ScannerWidget scanner) /*-{
 
 		function success(stream) {
 
-            scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
+			scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
 			var v = videoElement;
 			v.src = $wnd.URL.createObjectURL(stream);
 			scanner.@com.google.zxing.web.ScannerWidget::videoAttached()();
@@ -249,7 +248,6 @@ public class ScannerWidget extends FlowPanel
         setWebcam(video.getElement(), this);
     }
 
-    
     @Override
     protected void onDetach()
     {
@@ -261,7 +259,7 @@ public class ScannerWidget extends FlowPanel
     {
         return active;
     }
-    
+
     public boolean isScanning()
     {
         return isActive() && isAttached();
