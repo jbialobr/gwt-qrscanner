@@ -33,6 +33,7 @@ public class ScannerWidget extends FlowPanel
         createScanTimer();
         add(video);
         video.setStyleName("qrPreviewVideo");
+        video.setAutoplay(true);
     }
 
     private void createScanTimer()
@@ -103,7 +104,6 @@ public class ScannerWidget extends FlowPanel
 
     private void videoAttached()
     {
-        video.play();
         startScanning();
     }
 
@@ -254,7 +254,6 @@ public class ScannerWidget extends FlowPanel
     protected void onDetach()
     {
         super.onDetach();
-        video.pause();
         stopWebcam(this);
     }
 
