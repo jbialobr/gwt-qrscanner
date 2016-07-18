@@ -1,7 +1,6 @@
 package com.google.zxing.web;
 
 import com.google.gwt.canvas.client.Canvas;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.media.client.Video;
 import com.google.gwt.user.client.Timer;
@@ -25,7 +24,6 @@ public class ScannerWidget extends FlowPanel
     private Timer scanTimer;
     private int snapImageMaxSize = 3000;
     private boolean active = true;
-    private JavaScriptObject videoStream;
 
     public ScannerWidget(AsyncCallback<Result> callback)
     {
@@ -142,30 +140,10 @@ public class ScannerWidget extends FlowPanel
         callback.onFailure(e);
     }
 
-    public native void stopWebcam(ScannerWidget scanner) /*-{
-        if(scanner.@com.google.zxing.web.ScannerWidget::videoStream)
-        {
-            var stream = scanner.@com.google.zxing.web.ScannerWidget::videoStream;
-            if(stream.stop)
-            {
-                stream.stop();
-            }
-            else if(stream.getTracks)
-            {
-                stream.getTracks().forEach(function (track) {
-                    track.stop();
-                }); 
-            }
-                     
-           scanner.@com.google.zxing.web.ScannerWidget::videoStream = null;
-        }
-    }-*/;
-    
     public native void setWebcam(Element videoElement, ScannerWidget scanner) /*-{
 
 		function success(stream) {
 
-            scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
 			var v = videoElement;
 			v.src = $wnd.URL.createObjectURL(stream);
 			scanner.@com.google.zxing.web.ScannerWidget::videoAttached()();
@@ -247,14 +225,6 @@ public class ScannerWidget extends FlowPanel
         super.onAttach();
         video.setSrc("");
         setWebcam(video.getElement(), this);
-    }
-
-    
-    @Override
-    protected void onDetach()
-    {
-        super.onDetach();
-        stopWebcam(this);
     }
 
     public boolean isActive()
