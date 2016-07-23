@@ -1,5 +1,8 @@
 package com.google.zxing.web;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Element;
@@ -9,8 +12,10 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.zxing.Binarizer;
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.oned.MultiFormatOneDReader;
 import com.google.zxing.qrcode.QRCodeReader;
 
 public class ScannerWidget extends FlowPanel
@@ -19,6 +24,8 @@ public class ScannerWidget extends FlowPanel
     private Video video = Video.createIfSupported();
     private Canvas canvas = Canvas.createIfSupported();
     private QRCodeReader qrReader = new QRCodeReader();
+    private MultiFormatOneDReader oneDReader = new MultiFormatOneDReader(null); 
+    private List<Reader> readers = new ArrayList<Reader>();
     private double lastScanTime;
     private int scanInterval = 300;
     private AsyncCallback<Result> callback;
@@ -30,6 +37,8 @@ public class ScannerWidget extends FlowPanel
     public ScannerWidget(AsyncCallback<Result> callback)
     {
         this.callback = callback;
+        readers.add(oneDReader);
+        readers.add(qrReader);
         createScanTimer();
         add(video);
         video.setStyleName("qrPreviewVideo");
@@ -120,14 +129,21 @@ public class ScannerWidget extends FlowPanel
             BinaryBitmap bitmap = createSnapImage();
             if(bitmap != null)
             {
-                qrReader.reset();
-                Result result = qrReader.decode(bitmap);
-                onSuccess(result);
+                for(Reader reader : readers)
+                {
+                    try
+                    {
+                        reader.reset();
+                        Result result = reader.decode(bitmap);
+                        onSuccess(result);
+                        return;
+                    }
+                    catch(Exception e)
+                    {
+                        onError(e);
+                    }
+                }
             }
-        }
-        catch(Exception e)
-        {
-            onError(e);
         }
         finally
         {
