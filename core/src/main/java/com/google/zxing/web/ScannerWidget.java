@@ -15,7 +15,6 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.oned.MultiFormatOneDReader;
 import com.google.zxing.qrcode.QRCodeReader;
 
 public class ScannerWidget extends FlowPanel
@@ -24,7 +23,7 @@ public class ScannerWidget extends FlowPanel
     private Video video = Video.createIfSupported();
     private Canvas canvas = Canvas.createIfSupported();
     private QRCodeReader qrReader = new QRCodeReader();
-    private MultiFormatOneDReader oneDReader = new MultiFormatOneDReader(null); 
+//    private MultiFormatOneDReader oneDReader = new MultiFormatOneDReader(null); 
     private List<Reader> readers = new ArrayList<Reader>();
     private double lastScanTime;
     private int scanInterval = 300;
@@ -37,7 +36,7 @@ public class ScannerWidget extends FlowPanel
     public ScannerWidget(AsyncCallback<Result> callback)
     {
         this.callback = callback;
-        readers.add(oneDReader);
+        //readers.add(oneDReader);
         readers.add(qrReader);
         createScanTimer();
         add(video);
