@@ -181,7 +181,11 @@ public class ScannerWidget extends FlowPanel
 
 			scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
 			var v = videoElement;
-			v.src = $wnd.URL.createObjectURL(stream);
+		    try {
+              v.srcObject = stream;
+            } catch (error) {
+              v.src = $wnd.URL.createObjectURL(stream);
+            }    
 			scanner.@com.google.zxing.web.ScannerWidget::videoAttached()();
 		}
 
