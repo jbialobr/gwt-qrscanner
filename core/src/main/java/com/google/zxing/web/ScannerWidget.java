@@ -159,84 +159,107 @@ public class ScannerWidget extends FlowPanel
     {
         callback.onFailure(e);
     }
+    
+    private void reportError(String msg)
+    {
+        callback.onSuccess(new Result(msg, null, null, null));
+    }
 
     public native void stopWebcam(ScannerWidget scanner) /*-{
-		if (scanner.@com.google.zxing.web.ScannerWidget::videoStream) {
-			var stream = scanner.@com.google.zxing.web.ScannerWidget::videoStream;
-			if (stream.stop) {
-				stream.stop();
-			} else if (stream.getTracks) {
-				stream.getTracks().forEach(function(track) {
-					track.stop();
-				});
-			}
+        
+if (scanner.@com.google.zxing.web.ScannerWidget::videoStream) {
+  var stream = scanner.@com.google.zxing.web.ScannerWidget::videoStream;
+  if (stream.stop)
+  {
+    stream.stop();
+  } else if (stream.getTracks)
+  {
+    stream.getTracks().forEach(function (track)
+    {
+      track.stop();
+    });
+  }
 
-			scanner.@com.google.zxing.web.ScannerWidget::videoStream = null;
-		}
+  scanner.@com.google.zxing.web.ScannerWidget::videoStream = null;
+}
     }-*/;
 
     public native void setWebcam(Element videoElement, ScannerWidget scanner) /*-{
 
-		function success(stream) {
+function success(stream)
+{
 
-			scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
-			var v = videoElement;
-		    try {
-              v.srcObject = stream;
-            } catch (error) {
-              v.src = $wnd.URL.createObjectURL(stream);
-            }    
-			scanner.@com.google.zxing.web.ScannerWidget::videoAttached()();
-		}
+  scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
+  var v = videoElement;
+  try
+  {
+    v.srcObject = stream;
+  } catch (ex)
+  {
+    v.src = $wnd.URL.createObjectURL(stream);
+  }
+  scanner.@com.google.zxing.web.ScannerWidget::videoAttached()();
+}
 
-		function error(error) {
-			return;
-		}
+function error(ex)
+{
+  var msg = ex.message
+  scanner.@com.google.zxing.web.ScannerWidget::reportError(Ljava/lang/String;)(msg);
+}
 
-		var n = $wnd.navigator;
+var n = $wnd.navigator;
 
-		if (n.mediaDevices && n.mediaDevices.getUserMedia) {
-			n.mediaDevices.getUserMedia({
-				video : {
-					facingMode : "environment"
-				},
-				audio : false
-			}).then(success);
-		} else {
-			MediaStreamTrack.getSources(function(sourceInfos) {
-				var videoSource = null;
+if (n.mediaDevices && n.mediaDevices.getUserMedia)
+{
+  n.mediaDevices.getUserMedia({
+    video: {
+      facingMode: "environment"
+    },
+    audio: false
+  }).then(success)['catch'](error);
+} else
+{
+  MediaStreamTrack.getSources(function (sourceInfos)
+  {
+    var videoSource = null;
 
-				for (var i = 0; i != sourceInfos.length; ++i) {
-					var sourceInfo = sourceInfos[i];
-					if (sourceInfo.kind === 'video'
-							&& sourceInfo.facing === 'environment') {
+    for (var i = 0; i != sourceInfos.length; ++i)
+    {
+      var sourceInfo = sourceInfos[i];
+      if (sourceInfo.kind === 'video'
+        && sourceInfo.facing === 'environment')
+      {
 
-						videoSource = sourceInfo.id;
-					}
-				}
+        videoSource = sourceInfo.id;
+      }
+    }
 
-				sourceSelected(videoSource);
-			});
+    sourceSelected(videoSource);
+  });
 
-			function sourceSelected(videoSource) {
-				var constraints = {
-					audio : false,
-					video : {
-						optional : [ {
-							sourceId : videoSource
-						} ]
-					}
-				};
+  function sourceSelected(videoSource)
+  {
+    var constraints = {
+      audio: false,
+      video: {
+        optional: [{
+          sourceId: videoSource
+        }]
+      }
+    };
 
-				if (n.getUserMedia) {
-					n.getUserMedia(constraints, success, error);
-				} else if (n.webkitGetUserMedia) {
-					n.webkitGetUserMedia(constraints, success, error);
-				} else if (n.mozGetUserMedia) {
-					n.mozGetUserMedia(constraints, success, error);
-				}
-			}
-		}
+    if (n.getUserMedia)
+    {
+      n.getUserMedia(constraints, success, error);
+    } else if (n.webkitGetUserMedia)
+    {
+      n.webkitGetUserMedia(constraints, success, error);
+    } else if (n.mozGetUserMedia)
+    {
+      n.mozGetUserMedia(constraints, success, error);
+    }
+  }
+}
     }-*/;
 
     public int getScanInterval()
@@ -264,7 +287,14 @@ public class ScannerWidget extends FlowPanel
     {
         super.onAttach();
         video.setSrc("");
-        setWebcam(video.getElement(), this);
+        try
+        {
+            setWebcam(video.getElement(), this);
+        }
+        catch(Throwable t)
+        {
+            reportError(t.getMessage());
+        }
     }
 
     @Override
