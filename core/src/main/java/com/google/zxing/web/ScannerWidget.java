@@ -188,12 +188,19 @@ if (scanner.@com.google.zxing.web.ScannerWidget::videoStream) {
 
 function success(stream)
 {
-
   scanner.@com.google.zxing.web.ScannerWidget::videoStream = stream;
   var v = videoElement;
+
+  function removeControls(){
+    v.removeAttribute('controls');
+  }
+
   try
   {
     v.srcObject = stream;
+    v.setAttribute('playsinline', true);
+    v.setAttribute('controls', true);
+    setTimeout(removeControls);
   } catch (ex)
   {
     v.src = $wnd.URL.createObjectURL(stream);
