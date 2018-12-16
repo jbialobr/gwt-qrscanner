@@ -32,10 +32,12 @@ public class ScannerWidget extends FlowPanel
     private int snapImageMaxSize = -1;
     private boolean active = true;
     private JavaScriptObject videoStream;
+    private JavaScriptObject videoStreamProvider;
 
-    public ScannerWidget(AsyncCallback<Result> callback)
+    public ScannerWidget(AsyncCallback<Result> callback, JavaScriptObject videoStreamProvider)
     {
         this.callback = callback;
+        this.videoStreamProvider = videoStreamProvider;
         //readers.add(oneDReader);
         readers.add(qrReader);
         createScanTimer();
@@ -213,6 +215,14 @@ function error(ex)
   var msg = ex.message
   scanner.@com.google.zxing.web.ScannerWidget::reportError(Ljava/lang/String;)(msg);
 }
+
+  var vsp = scanner.@com.google.zxing.web.ScannerWidget::videoStreamProvider;
+  if(vsp)
+  {
+    vsp().then(success)['catch'](error);
+    return;
+  }
+
 
 var n = $wnd.navigator;
 
