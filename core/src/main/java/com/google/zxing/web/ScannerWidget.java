@@ -234,47 +234,23 @@ if (n.mediaDevices && n.mediaDevices.getUserMedia)
     },
     audio: false
   }).then(success)['catch'](error);
-} else
+} 
+else
 {
-  MediaStreamTrack.getSources(function (sourceInfos)
+  var constraints = {
+    audio: false,
+    video: true
+  };
+
+  if (n.getUserMedia)
   {
-    var videoSource = null;
-
-    for (var i = 0; i != sourceInfos.length; ++i)
-    {
-      var sourceInfo = sourceInfos[i];
-      if (sourceInfo.kind === 'video'
-        && sourceInfo.facing === 'environment')
-      {
-
-        videoSource = sourceInfo.id;
-      }
-    }
-
-    sourceSelected(videoSource);
-  });
-
-  function sourceSelected(videoSource)
+    n.getUserMedia(constraints, success, error);
+  } else if (n.webkitGetUserMedia)
   {
-    var constraints = {
-      audio: false,
-      video: {
-        optional: [{
-          sourceId: videoSource
-        }]
-      }
-    };
-
-    if (n.getUserMedia)
-    {
-      n.getUserMedia(constraints, success, error);
-    } else if (n.webkitGetUserMedia)
-    {
-      n.webkitGetUserMedia(constraints, success, error);
-    } else if (n.mozGetUserMedia)
-    {
-      n.mozGetUserMedia(constraints, success, error);
-    }
+    n.webkitGetUserMedia(constraints, success, error);
+  } else if (n.mozGetUserMedia)
+  {
+    n.mozGetUserMedia(constraints, success, error);
   }
 }
     }-*/;
