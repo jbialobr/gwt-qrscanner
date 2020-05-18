@@ -16,6 +16,7 @@
 
 package com.google.zxing.common;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import com.google.zxing.DecodeHintType;
@@ -28,23 +29,23 @@ import com.google.zxing.DecodeHintType;
  */
 public final class StringUtils {
 
-  public static final String SHIFT_JIS = "Shift_JIS";
+  private static final String PLATFORM_DEFAULT_ENCODING = Charset.defaultCharset().name();
+  public static final String SHIFT_JIS = "SJIS";
   public static final String GB2312 = "GB2312";
-  private static final String EUC_JP = "EUC-JP";
-  private static final String UTF8 = "UTF-8";
-  private static final String PLATFORM_DEFAULT_ENCODING = UTF8;
-  private static final String ISO_8859_1 = "ISO-8859-1";
+  private static final String EUC_JP = "EUC_JP";
+  private static final String UTF8 = "UTF8";
+  private static final String ISO88591 = "ISO8859_1";
   private static final boolean ASSUME_SHIFT_JIS =
       SHIFT_JIS.equalsIgnoreCase(PLATFORM_DEFAULT_ENCODING) ||
       EUC_JP.equalsIgnoreCase(PLATFORM_DEFAULT_ENCODING);
 
-  private StringUtils() {}
+  private StringUtils() { }
 
   /**
    * @param bytes bytes encoding a string, whose encoding should be guessed
    * @param hints decode hints if applicable
    * @return name of guessed encoding; at the moment will only guess one of:
-   *  {@link #SHIFT_JIS}, {@link #UTF8}, {@link #ISO_8859_1}, or the platform
+   *  {@link #SHIFT_JIS}, {@link #UTF8}, {@link #ISO88591}, or the platform
    *  default encoding if none of these can possibly be correct
    */
   public static String guessEncoding(byte[] bytes, Map<DecodeHintType,?> hints) {
@@ -58,20 +59,15 @@ public final class StringUtils {
     boolean canBeShiftJIS = true;
     boolean canBeUTF8 = true;
     int utf8BytesLeft = 0;
-    //int utf8LowChars = 0;
     int utf2BytesChars = 0;
     int utf3BytesChars = 0;
     int utf4BytesChars = 0;
     int sjisBytesLeft = 0;
-    //int sjisLowChars = 0;
     int sjisKatakanaChars = 0;
-    //int sjisDoubleBytesChars = 0;
     int sjisCurKatakanaWordLength = 0;
     int sjisCurDoubleBytesWordLength = 0;
     int sjisMaxKatakanaWordLength = 0;
     int sjisMaxDoubleBytesWordLength = 0;
-    //int isoLowChars = 0;
-    //int isoHighChars = 0;
     int isoHighOther = 0;
 
     boolean utf8bom = bytes.length > 3 &&
@@ -114,24 +110,16 @@ public final class StringUtils {
               }
             }
           }
-        } //else {
-          //utf8LowChars++;
-        //}
+        }
       }
 
       // ISO-8859-1 stuff
       if (canBeISO88591) {
         if (value > 0x7F && value < 0xA0) {
           canBeISO88591 = false;
-        } else if (value > 0x9F) {
-          if (value < 0xC0 || value == 0xD7 || value == 0xF7) {
-            isoHighOther++;
-          } //else {
-            //isoHighChars++;
-          //}
-        } //else {
-          //isoLowChars++;
-        //}
+        } else if (value > 0x9F && (value < 0xC0 || value == 0xD7 || value == 0xF7)) {
+          isoHighOther++;
+        }
       }
 
       // Shift_JIS stuff
@@ -178,7 +166,7 @@ public final class StringUtils {
     if (canBeUTF8 && (utf8bom || utf2BytesChars + utf3BytesChars + utf4BytesChars > 0)) {
       return UTF8;
     }
-    // Easy -- if assuming Shift_JIS or at least 3 valid consecutive not-ascii characters (and no evidence it can't be), done
+    // Easy -- if assuming Shift_JIS or >= 3 valid consecutive not-ascii characters (and no evidence it can't be), done
     if (canBeShiftJIS && (ASSUME_SHIFT_JIS || sjisMaxKatakanaWordLength >= 3 || sjisMaxDoubleBytesWordLength >= 3)) {
       return SHIFT_JIS;
     }
@@ -189,12 +177,12 @@ public final class StringUtils {
     // - then we conclude Shift_JIS, else ISO-8859-1
     if (canBeISO88591 && canBeShiftJIS) {
       return (sjisMaxKatakanaWordLength == 2 && sjisKatakanaChars == 2) || isoHighOther * 10 >= length
-          ? SHIFT_JIS : ISO_8859_1;
+          ? SHIFT_JIS : ISO88591;
     }
 
     // Otherwise, try in order ISO-8859-1, Shift JIS, UTF-8 and fall back to default platform encoding
     if (canBeISO88591) {
-      return ISO_8859_1;
+      return ISO88591;
     }
     if (canBeShiftJIS) {
       return SHIFT_JIS;

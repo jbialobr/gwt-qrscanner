@@ -54,7 +54,7 @@ public final class RGBLuminanceSource extends LuminanceSource {
       luminances[offset] = (byte) ((r + g2 + b) / 4);
     }
   }
-  
+
   private RGBLuminanceSource(byte[] pixels,
                              int dataWidth,
                              int dataHeight,
@@ -109,15 +109,14 @@ public final class RGBLuminanceSource extends LuminanceSource {
     }
 
     // Otherwise copy one cropped row at a time.
-    byte[] rgb = luminances;
     for (int y = 0; y < height; y++) {
       int outputOffset = y * width;
-      System.arraycopy(rgb, inputOffset, matrix, outputOffset, width);
+      System.arraycopy(luminances, inputOffset, matrix, outputOffset, width);
       inputOffset += dataWidth;
     }
     return matrix;
   }
-  
+
   @Override
   public boolean isCropSupported() {
     return true;

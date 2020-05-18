@@ -22,7 +22,9 @@ import com.google.zxing.Writer;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * <p>Encapsulates functionality and implementation that is common to one-dimensional barcodes.</p>
@@ -30,6 +32,7 @@ import java.util.Map;
  * @author dsbnatut@gmail.com (Kazuki Nishiura)
  */
 public abstract class OneDimensionalCodeWriter implements Writer {
+  private static final Pattern NUMERIC = Pattern.compile("[0-9]+");
 
   @Override
   public final BitMatrix encode(String contents, BarcodeFormat format, int width, int height)
@@ -49,7 +52,7 @@ public abstract class OneDimensionalCodeWriter implements Writer {
                           BarcodeFormat format,
                           int width,
                           int height,
-                          Map<EncodeHintType,?> hints) throws WriterException {
+                          Map<EncodeHintType,?> hints) {
     if (contents.isEmpty()) {
       throw new IllegalArgumentException("Found empty contents");
     }
@@ -57,6 +60,11 @@ public abstract class OneDimensionalCodeWriter implements Writer {
     if (width < 0 || height < 0) {
       throw new IllegalArgumentException("Negative size is not allowed. Input: "
                                              + width + 'x' + height);
+    }
+    Collection<BarcodeFormat> supportedFormats = getSupportedWriteFormats();
+    if (supportedFormats != null && !supportedFormats.contains(format)) {
+      throw new IllegalArgumentException("Can only encode " + supportedFormats +
+        ", but got " + format);
     }
 
     int sidesMargin = getDefaultMargin();
@@ -66,6 +74,10 @@ public abstract class OneDimensionalCodeWriter implements Writer {
 
     boolean[] code = encode(contents);
     return renderResult(code, width, height, sidesMargin);
+  }
+
+  protected Collection<BarcodeFormat> getSupportedWriteFormats() {
+    return null;
   }
 
   /**
@@ -90,6 +102,15 @@ public abstract class OneDimensionalCodeWriter implements Writer {
     return output;
   }
 
+  /**
+   * @param contents string to check for numeric characters
+   * @throws IllegalArgumentException if input contains characters other than digits 0-9.
+   */
+  protected static void checkNumeric(String contents) {
+    if (!NUMERIC.matcher(contents).matches()) {
+      throw new IllegalArgumentException("Input should only contain digits 0-9");
+    }
+  }
 
   /**
    * @param target encode black/white pattern into this array

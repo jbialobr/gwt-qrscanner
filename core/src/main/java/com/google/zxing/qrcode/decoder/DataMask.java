@@ -31,9 +31,7 @@ import com.google.zxing.common.BitMatrix;
  */
 enum DataMask {
 
-  /**
-   * See ISO 18004:2006 6.8.1
-   */
+  // See ISO 18004:2006 6.8.1
 
   /**
    * 000: mask bits for which (x + y) mod 2 == 0
@@ -87,33 +85,34 @@ enum DataMask {
 
   /**
    * 101: mask bits for which xy mod 2 + xy mod 3 == 0
+   * equivalently, such that xy mod 6 == 0
    */
   DATA_MASK_101() {
     @Override
     boolean isMasked(int i, int j) {
-      int temp = i * j;
-      return (temp & 0x01) + (temp % 3) == 0;
+      return (i * j) % 6 == 0;
     }
   },
 
   /**
    * 110: mask bits for which (xy mod 2 + xy mod 3) mod 2 == 0
+   * equivalently, such that xy mod 6 < 3
    */
   DATA_MASK_110() {
     @Override
     boolean isMasked(int i, int j) {
-      int temp = i * j;
-      return (((temp & 0x01) + (temp % 3)) & 0x01) == 0;
+      return ((i * j) % 6) < 3;
     }
   },
 
   /**
    * 111: mask bits for which ((x+y)mod 2 + xy mod 3) mod 2 == 0
+   * equivalently, such that (x + y + xy mod 3) mod 2 == 0
    */
   DATA_MASK_111() {
     @Override
     boolean isMasked(int i, int j) {
-      return ((((i + j) & 0x01) + ((i * j) % 3)) & 0x01) == 0;
+      return ((i + j + ((i * j) % 3)) & 0x01) == 0;
     }
   };
 

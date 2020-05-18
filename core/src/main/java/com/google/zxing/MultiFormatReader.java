@@ -16,11 +16,12 @@
 
 package com.google.zxing;
 
+import com.google.zxing.oned.MultiFormatOneDReader;
+import com.google.zxing.qrcode.QRCodeReader;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-
-import com.google.zxing.qrcode.QRCodeReader;
 
 /**
  * MultiFormatReader is a convenience class and the main entry point into the library for most uses.
@@ -31,6 +32,8 @@ import com.google.zxing.qrcode.QRCodeReader;
  * @author dswitkin@google.com (Daniel Switkin)
  */
 public final class MultiFormatReader implements Reader {
+
+  private static final Reader[] EMPTY_READER_ARRAY = new Reader[0];
 
   private Map<DecodeHintType,?> hints;
   private Reader[] readers;
@@ -90,9 +93,48 @@ public final class MultiFormatReader implements Reader {
   public void setHints(Map<DecodeHintType,?> hints) {
     this.hints = hints;
 
+    boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
+    @SuppressWarnings("unchecked")
+    Collection<BarcodeFormat> formats =
+        hints == null ? null : (Collection<BarcodeFormat>) hints.get(DecodeHintType.POSSIBLE_FORMATS);
     Collection<Reader> readers = new ArrayList<>();
-    readers.add(new QRCodeReader());
-    this.readers = readers.toArray(new Reader[readers.size()]);
+    if (formats != null) {
+      boolean addOneDReader =
+          formats.contains(BarcodeFormat.UPC_A) ||
+          formats.contains(BarcodeFormat.UPC_E) ||
+          formats.contains(BarcodeFormat.EAN_13) ||
+          formats.contains(BarcodeFormat.EAN_8) ||
+          formats.contains(BarcodeFormat.CODABAR) ||
+          formats.contains(BarcodeFormat.CODE_39) ||
+          formats.contains(BarcodeFormat.CODE_93) ||
+          formats.contains(BarcodeFormat.CODE_128) ||
+          formats.contains(BarcodeFormat.ITF) ||
+          formats.contains(BarcodeFormat.RSS_14) ||
+          formats.contains(BarcodeFormat.RSS_EXPANDED);
+      // Put 1D readers upfront in "normal" mode
+      if (addOneDReader && !tryHarder) {
+        readers.add(new MultiFormatOneDReader(hints));
+      }
+      if (formats.contains(BarcodeFormat.QR_CODE)) {
+        readers.add(new QRCodeReader());
+      }
+      // At end in "try harder" mode
+      if (addOneDReader && tryHarder) {
+        readers.add(new MultiFormatOneDReader(hints));
+      }
+    }
+    if (readers.isEmpty()) {
+      if (!tryHarder) {
+        readers.add(new MultiFormatOneDReader(hints));
+      }
+
+      readers.add(new QRCodeReader());
+
+      if (tryHarder) {
+        readers.add(new MultiFormatOneDReader(hints));
+      }
+    }
+    this.readers = readers.toArray(EMPTY_READER_ARRAY);
   }
 
   @Override

@@ -24,11 +24,7 @@ package com.google.zxing;
  */
 public final class ChecksumException extends ReaderException {
 
-  /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-private static final ChecksumException INSTANCE = new ChecksumException();
+  private static final ChecksumException INSTANCE = new ChecksumException();
   static {
     INSTANCE.setStackTrace(NO_TRACE); // since it's meaningless
   }
