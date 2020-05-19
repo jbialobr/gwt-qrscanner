@@ -29,11 +29,11 @@ import com.google.zxing.DecodeHintType;
  */
 public final class StringUtils {
 
-  private static final String PLATFORM_DEFAULT_ENCODING = Charset.defaultCharset().name();
   public static final String SHIFT_JIS = "SJIS";
   public static final String GB2312 = "GB2312";
   private static final String EUC_JP = "EUC_JP";
   private static final String UTF8 = "UTF8";
+  private static final String PLATFORM_DEFAULT_ENCODING = UTF8;
   private static final String ISO88591 = "ISO8859_1";
   private static final boolean ASSUME_SHIFT_JIS =
       SHIFT_JIS.equalsIgnoreCase(PLATFORM_DEFAULT_ENCODING) ||
