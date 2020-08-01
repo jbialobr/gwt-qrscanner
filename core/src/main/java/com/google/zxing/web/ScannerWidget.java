@@ -60,7 +60,7 @@ public class ScannerWidget extends FlowPanel
 
     }
 
-    private BinaryBitmap createSnapImage()
+    private BinaryBitmap createSnapImage(boolean inverse)
     {
         int w, h;
         w = video.getVideoWidth();
@@ -90,7 +90,7 @@ public class ScannerWidget extends FlowPanel
             canvas.setCoordinateSpaceHeight(h);
             canvas.getContext2d().drawImage(video.getVideoElement(), 0, 0, w, h);
 
-            CanvasLuminanceSource lsource = new CanvasLuminanceSource(canvas);
+            CanvasLuminanceSource lsource = new CanvasLuminanceSource(canvas, inverse);
             Binarizer binarizer = new HybridBinarizer(lsource);
             BinaryBitmap snapImage = new BinaryBitmap(binarizer);
             return snapImage;
@@ -127,23 +127,9 @@ public class ScannerWidget extends FlowPanel
 
         try
         {
-            BinaryBitmap bitmap = createSnapImage();
-            if(bitmap != null)
+            if(!tryDecode(false))
             {
-                for(Reader reader : readers)
-                {
-                    try
-                    {
-                        reader.reset();
-                        Result result = reader.decode(bitmap);
-                        onSuccess(result);
-                        return;
-                    }
-                    catch(Exception e)
-                    {
-                        onError(e);
-                    }
-                }
+                tryDecode(true);
             }
         }
         finally
@@ -152,6 +138,30 @@ public class ScannerWidget extends FlowPanel
         }
     }
 
+    private boolean tryDecode(boolean inverse)
+    {
+        BinaryBitmap bitmap = createSnapImage(inverse);
+        if(bitmap != null)
+        {
+            for(Reader reader : readers)
+            {
+                try
+                {
+                    reader.reset();
+                    Result result = reader.decode(bitmap);
+                    onSuccess(result);
+                    return true;
+                }
+                catch(Exception e)
+                {
+                    onError(e);
+                }
+            }
+        }
+        
+        return false;
+    }
+    
     private void onSuccess(Result result)
     {
         callback.onSuccess(result);

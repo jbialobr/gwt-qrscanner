@@ -53,12 +53,12 @@ public final class CanvasLuminanceSource extends LuminanceSource
     private final int left;
     private final int top;
 
-    public CanvasLuminanceSource(Canvas image)
+    public CanvasLuminanceSource(Canvas image, boolean inverse)
     {
-        this(image, 0, 0, image.getCoordinateSpaceWidth(), image.getCoordinateSpaceHeight());
+        this(image, 0, 0, image.getCoordinateSpaceWidth(), image.getCoordinateSpaceHeight(), inverse);
     }
 
-    public CanvasLuminanceSource(Canvas aImage, int left, int top, int width, int height)
+    public CanvasLuminanceSource(Canvas aImage, int left, int top, int width, int height, boolean inverse)
     {
         super(width, height);
 
@@ -87,6 +87,10 @@ public final class CanvasLuminanceSource extends LuminanceSource
                 // course as the "white" area in a
                 // barcode image. Force any such pixel to be white:
                 int avg = 0xFF;
+                if(inverse)
+                {
+                    avg = 0;
+                }
                 data.set(i + OFFSET_RED, avg);
                 data.set(i + OFFSET_GREEN, avg);
                 data.set(i + OFFSET_BLUE, avg);
@@ -96,6 +100,10 @@ public final class CanvasLuminanceSource extends LuminanceSource
             {
                 int avg = (data.get(i + OFFSET_RED) + data.get(i + OFFSET_GREEN) + data.get(i
                     + OFFSET_BLUE)) / 3;
+                if(inverse)
+                {
+                    avg = 0xFF - avg;
+                }
                 data.set(i + OFFSET_RED, avg);
                 data.set(i + OFFSET_GREEN, avg);
                 data.set(i + OFFSET_BLUE, avg);
@@ -155,7 +163,7 @@ public final class CanvasLuminanceSource extends LuminanceSource
     @Override
     public LuminanceSource crop(int left, int top, int width, int height)
     {
-        return new CanvasLuminanceSource(image, this.left + left, this.top + top, width, height);
+        return new CanvasLuminanceSource(image, this.left + left, this.top + top, width, height, false);
     }
 
     /**
@@ -187,7 +195,7 @@ public final class CanvasLuminanceSource extends LuminanceSource
         // Maintain the cropped region, but rotate it too.
         int width = getWidth();
         return new CanvasLuminanceSource(rotatedImage, top, sourceWidth - (left + width),
-            getHeight(), width);
+            getHeight(), width, false);
     }
 
     @Override
@@ -222,7 +230,7 @@ public final class CanvasLuminanceSource extends LuminanceSource
         int newBottom = Math.min(sourceDimension - 1, oldCenterY + halfDimension);
 
         return new CanvasLuminanceSource(rotatedImage, newLeft, newTop, newRight - newLeft,
-            newBottom - newTop);
+            newBottom - newTop, false);
     }
 
 }
